@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from google.adk.agents import LlmAgent, SequentialAgent
 from google.adk.tools import google_search
 
