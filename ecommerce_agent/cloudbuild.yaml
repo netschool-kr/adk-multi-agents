@@ -1,0 +1,45 @@
+substitutions:
+  _REGION: us-central1
+  _REPO: agent-repo
+  _SERVICE: ecommerce-agent-api
+
+# The built image will be visible in Cloud Build UI
+images:
+  - us-central1-docker.pkg.dev/${PROJECT_ID}/${_REPO}/agent-app:${SHORT_SHA}
+
+steps:
+  # Step 1: Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/${_REPO}/agent-app:${SHORT_SHA}'
+      - '.'
+
+  # Step 2: Push the image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/${_REPO}/agent-app:${SHORT_SHA}'
+
+  # Step 3: Deploy to Cloud Run using gcloud builder
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE}'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/${_REPO}/agent-app:${SHORT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--service-account'
+      - 'ecommerce-agent-sa@${PROJECT_ID}.iam.gserviceaccount.com'
+      - '--set-env-vars'
+      - 'GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${_REGION}'
+      - '--allow-unauthenticated'
+
+# Prevent runaway builds
+timeout: '1200s'
