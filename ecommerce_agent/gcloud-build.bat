@@ -1,0 +1,1 @@
+gcloud builds submit --tag us-central1-docker.pkg.dev/adk-multi-agents/agent-repo/agent-app:latest .
